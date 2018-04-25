@@ -13,10 +13,14 @@ def time_was_spent(func):
     def wrapper(*args):
 # Запоминаем время старта функции
         start = datetime.now()
-# Выполняем функцию
-        func(*args)
+# Выполняем функцию и результат присваиваем переменной
+        val = func(*args)
 # Выводим результат:
         print('Времени затрачено: ' + str(datetime.now() - start))
+# Возвращаем результат работы обертываемой функции (если обертываемая функция не возвращает результат можно не возвращать)
+# Но если Вы не вернете результат функции, а потом обернете функцию которая должна вернуть результат, то после обертывания
+# результата не будет!!!! Внимательно!!
+        return val
 
     return wrapper
 
@@ -28,6 +32,7 @@ def main(url):
 # Сохраняем домен сайта (для относительных ссылок)
     domain_url = index_url(url)
 # Перебираем все ссылки на подразделы сайта
+
     for link in all_links:
         print(all_links[link]) #Для контроля выводим на экран относительную ссылку обрабатываемую в данный момент
         url_goods = domain_url + all_links[link] # Получаем полную ссылку на раздел каталога
@@ -38,18 +43,18 @@ def main(url):
 
 # Функция сборка товаров по ссылке
 @time_was_spent
-def get_goods(url, tag, prop, file):
+def get_goods(*args):
 # Сохраняем домен сайта (для относительных ссылок)
-    index_urls = index_url(url)
+    index_urls = index_url(args[0])
 # Создаем новый список ссылок и добавляем в него полученную ссылку
-    url_list = [url]
+    url_list = [args[0]]
 # Создаем список в который будем передавать "тело" документа с товарами
     goods_body = []
 
 # Проверяем есть ли в разделе пагинация
     try:
 # Если есть то получаем этот элемент для разбора
-        pagination = get_html_doc(url, 'ul' , 'pagination')[0].find_all('li')
+        pagination = get_html_doc(args[0], 'ul' , 'pagination')[0].find_all('li')
     except:
         pagination = []
 
@@ -59,10 +64,10 @@ def get_goods(url, tag, prop, file):
 
 # Добавляем элементы с полученных страниц раздела в список
     for url_item in url_list:
-        goods_body.append(get_html_doc(url_item, tag, prop))
+        goods_body.append(get_html_doc(url_item, args[1], args[2]))
 
 # Открываем файл для редактирования
-    with open(file, 'a') as f:
+    with open(args[3], 'a') as f:
 # Вписываем строку заголовков столбцов
         f.write(str('Артикул;Наименование;Цена;Количество;\n'))
 # Перебираем страницы подраздела
@@ -80,11 +85,12 @@ def get_goods(url, tag, prop, file):
                 f.write(str(label + ";" + name + ";" + price + ";" + volume + ";\n"))
 
 
-
     return 0
 
 # Функция сбора всех ссылок на разделы каталога
+@time_was_spent
 def get_all_links(url, tag, prop):
+    print('Получаем все ссылки подразделов каталога с товарами')
     new_links = {}
     # Вычленяем из ссылки имя домена
     url_main = index_url(url)
