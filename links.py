@@ -4,6 +4,22 @@ from bs4 import BeautifulSoup as bs
 from urllib import request as req
 from urllib.parse import urlparse
 import re
+from datetime import datetime
+
+
+# Декоратор для вывода информации о затраченном времени
+def time_was_spent(func):
+# Обязательно пишем *args, давая понять что у декорируемой функции есть передаваемые аргументы
+    def wrapper(*args):
+# Запоминаем время старта функции
+        start = datetime.now()
+# Выполняем функцию
+        func(*args)
+# Выводим результат:
+        print('Времени затрачено: ' + str(datetime.now() - start))
+
+    return wrapper
+
 
 # Основная функция модуля в которую передаем ссылку на сайт.
 def main(url):
@@ -21,6 +37,7 @@ def main(url):
     return goods
 
 # Функция сборка товаров по ссылке
+@time_was_spent
 def get_goods(url, tag, prop, file):
 # Сохраняем домен сайта (для относительных ссылок)
     index_urls = index_url(url)
